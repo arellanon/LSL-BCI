@@ -31,7 +31,7 @@ class DataThread (threading.Thread):
         threading.Thread.__init__ (self)
         self.keep_alive = True
         self.total_data = None
-        self.lista_ts = None
+        self.times = None
         self.index = 0
     
     def run (self):
@@ -40,59 +40,50 @@ class DataThread (threading.Thread):
         while self.keep_alive:
             try:
                 sample, timestamp = inlet.pull_sample()
-                print("ts: ", datetime.fromtimestamp(timestamp) ,'-',  datetime.fromtimestamp(local_clock())  )
-                #print(*a, file=sys.stdout)
+                local = local_clock()
+                print("ts: ", timestamp, ": ", datetime.fromtimestamp(timestamp) ,'-',  local, ": ", datetime.fromtimestamp(local), " - ", local -  timestamp)
                 data = np.array([sample])
-                #print(data.shape)
                 data = data.transpose()
-                #print(data.shape)
                 ts = np.array(timestamp)
                 self.index = self.index + 1
                 if self.total_data is None:
                     self.total_data = data
-                    self.lista_ts = ts
+                    self.times = ts
                 else:
                     self.total_data =  np.append(self.total_data, data, axis=1)
-                    self.lista_ts = np.append(self.lista_ts, ts)
-                    #print(self.lista_ts.shape)
+                    self.times = np.append(self.times, ts)
             except Exception as e:
                 print("Error")
                 sys.exit()
         print("Final")        
 
-def save(config_calibration, data, lista_ts, labels):
-    path = config_calibration['path']
-    posiciones = None
-    print(data)
-    print(type(data))
+def save_data(path, data):
     #convertir de uV -> V
     data = data / 1000000
     raw = loadDatos(data, 'ch_names.txt')
     montage = make_standard_montage('standard_1020')
     raw.set_montage(montage)
-    print(raw)
-    
     raw.save(path + "/data_eeg.fif", overwrite=True)
-    np.save(path + '/lista_ts.npy', lista_ts)
+    return raw
+
+def save_event(path, times, labels):
+    np.save(path + '/times.npy', times)
     np.save(path + '/labels.npy', labels)
-    print(lista_ts)
     #Buscamos posicion del evento por proximidad ts
+    posiciones = None
     for x in labels:
-        resta = abs(lista_ts - x[0])
+        resta = abs(times - x[0])
         pos = np.where(min(resta) == resta)[0]
         if posiciones is None:
             posiciones = pos
         else:
             posiciones = np.append(posiciones, pos)
-            
     #Con las posiciones creamos matriz de eventos pos x zero x event
     events = np.zeros((len(labels) , 3), int)
     events[:, 0] = posiciones.astype(int)
     events[:, 2] = labels[:,1].astype(int)
-    print(events)
     mne.write_events(path + "/event.fif", events)
-    raw.plot(scalings=None, n_channels=8, events=events)
-    
+    return events
 
 def test(salida, config_calibration):
     time_initial = config_calibration['time_initial']
@@ -100,19 +91,8 @@ def test(salida, config_calibration):
     trial_per_run = config_calibration['trial_per_run']    
     time_trial = config_calibration['time_trial']
     time_pause = config_calibration['time_pause']
-    time_pause_per_run = config_calibration['time_pause_per_run']
-    
-    #run_n = 1
-    #trial_per_run = 40
-    #run_n = 1
-    #trial_per_run = 4
-    #time_trial = 4<class 'NoneType'>
-
-    #time_pause = 4
-    #time_pause_per_run = 20
-    
+    time_pause_per_run = config_calibration['time_pause_per_run']    
     time_fixation = 3
-    
     labels=None
     
     #variables para sonido beep
@@ -140,7 +120,6 @@ def test(salida, config_calibration):
             os.system('play -nq -t alsa synth {} sine {}'.format(duration, freq)) #beep
             #ts = time.time()
             ts = local_clock()
-            print()
             print(x, ' ', ts, '-', type(ts), ' - ', datetime.fromtimestamp(ts))
             label=np.array( [ [ts], [x] ] )
             if labels is None:
@@ -158,20 +137,21 @@ def test(salida, config_calibration):
                     salida.write('>')
                 time.sleep(1)
             time.sleep(time_pause)
-    
     labels=labels.transpose() #realizamos la traspuesta ts x event
     return labels
 
-def main(salida):
+def main():
     print("Inicio...")
     config_calibration = loadConfig("config.ini", "CALIBRATION")
+    path = config_calibration['path']
+    salida = sys.stdout
+    sys.stdout = open(path + "/stdout.txt","w")
     try:
         signal.signal(signal.SIGINT, keyboardInterrupt_handler)
         print('Resolving a Control stream...')
         data_thead = DataThread()
         data_thead.start()
         labels = test(salida, config_calibration)
-        #time.sleep(1)
     except ServiceExit:
         data_thead.keep_alive = False
         data_thead.join()
@@ -181,17 +161,11 @@ def main(salida):
         data_thead.keep_alive = False
         pos = data_thead.index
         total_data = data_thead.total_data
-        lista_ts = data_thead.lista_ts
+        times = data_thead.times
         data_thead.join()
-        save(config_calibration, total_data, lista_ts, labels)
-        print("pos final: ", pos)
-        print("labels: ", labels)
+        raw = save_data(path, total_data)
+        events = save_event(path, times, labels)
+        raw.plot(scalings=None, n_channels=8, events=events)
 
 if __name__ == "__main__":
-    salida = sys.stdout
-    sys.stdout = open("output.txt","w")
-    main(salida)
-    #Archivo de salida
-    #fout=open("output.txt","a")
-    #fout.write(sys.stdout)
-    #fout.close()
+    main()
