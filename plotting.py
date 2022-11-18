@@ -31,8 +31,13 @@ from libb import *
 def main():   
     #low_freq, high_freq = 7., 30.
     
-    raw = mne.io.read_raw_fif("data_eeg.fif", preload=True)
-    events_from_file = mne.read_events("event.fif",)
+    #raw = mne.io.read_raw_fif("data_eeg.fif", preload=True)
+    #events_from_file = mne.read_events("event.fif",)
+    
+    raw = mne.io.read_raw_fif("DATA/T12" + "/data_eeg.fif", preload=True)
+    #raw2 = mne.io.read_raw_fif("DATA/T13" + "/data_eeg.fif", preload=True)
+    
+    #raw.append(raw2)
     
     #sample_data_events_file = os.path.join(sample_data_folder, 'MEG', 'sample','sample_audvis_raw-eve.fif')
     #events_from_file = mne.read_events(path + "raw_eeg-eve.fif",)
@@ -53,7 +58,8 @@ def main():
     #raw.plot(scalings='auto', n_channels=1, events=events)
     #raw.plot(scalings='auto', n_channels=1, events = events_from_file)
     #raw.plot(scalings='auto', n_channels=1)
-    raw.plot(scalings=None, n_channels=8,  events = events_from_file)
+    #raw.plot(scalings=None, n_channels=8,  events = events_from_file)
+    raw.plot(scalings=None, n_channels=8)
     
 if __name__ == "__main__":
     main()

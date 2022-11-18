@@ -32,36 +32,9 @@ from libb import *
 
 class TrainML:
 
-    def run(self):
-        config_train_ml = loadConfig("config.ini", "TRAIN_ML")
-        path = config_train_ml['path']
-        tmin = config_train_ml['tmin']
-        tmax = config_train_ml['tmax']
-                
-        #low_freq, high_freq = 7., 30.
-        print("tmin: ",tmin," - tmax: ", tmax )
-        
-        # event_id
-        event_id = {'right': 1, 'pause': 0}
-        acurracy = []
-
-        raw = mne.io.read_raw_fif(path + "/data_eeg.fif", preload=True)
-        #raw.filter(low_freq, high_freq, fir_design='firwin', skip_by_annotation='edge')
-    
-        #sample_data_events_file = os.path.join(sample_data_folder, 'MEG', 'sample','sample_audvis_raw-eve.fif')
-        events = mne.read_events(path + "/event.fif")
-        
-        print(type(raw))
-        print(type(events))
-        print(events.shape)
-        print(events)
-        print(len(events))
-        event_new = events
-        
-        print(len(event_new))
-        #Se genera las epocas con los datos crudos y los eventos
-        epochs = mne.Epochs(raw, events=event_new, event_id=event_id, tmin=tmin, tmax=tmax, baseline=None, preload=True, verbose=False)
-        
+    def run(self):       
+        path="DATA/Experiment_2/Models/"
+        epochs=mne.read_epochs(path+"Experiment-epo.fif", proj=True, preload=True, verbose=None)
         #Se carga target (convierte 1 -> -1 y 2 -> 0 )
         #target = epochs.events[:, -1] - 2
         target = epochs.events[:, -1]

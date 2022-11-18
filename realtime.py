@@ -27,8 +27,9 @@ def keyboardInterrupt_handler(signum, frame):
     
 def main():
     print("Inicio...")
-    path_raiz = 'DATA/'
-    name_model = 'T2'
+    path_raiz = 'DATA/Experiment_2/'
+    #name_model = 'Models'
+    name_model = 'Models/Top/01'
     #path modelo
     path_model = path_raiz + name_model
     #Cargamos modelo
