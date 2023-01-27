@@ -83,7 +83,7 @@ def save_event(path, times, labels):
     events = np.zeros((len(labels) , 3), int)
     events[:, 0] = posiciones.astype(int)
     events[:, 2] = labels[:,1].astype(int)
-    mne.write_events(path + "/event.fif", events)
+    mne.write_events(path + "/data-eve.fif", events)
     return events
 
 
@@ -145,7 +145,7 @@ class Test(threading.Thread):
                         #print('+', end="")
                         #salida.write('+')
                         #etiqueta = Label(self.ventana, text=">")
-                        self.etiqueta["text"] = "pause"
+                        self.etiqueta["text"] = "left"
                     else:
                         #print('>', end="")
                         #salida.write('>')

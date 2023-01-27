@@ -27,13 +27,14 @@ def keyboardInterrupt_handler(signum, frame):
     
 def main():
     print("Inicio...")
-    path_raiz = 'DATA/Experiment_2/'
+    path_raiz = 'DATA/Experiment_4/'
     #name_model = 'Models'
-    name_model = 'Models/Top/01'
+    name_model = 'Models/'
+    num=2736
     #path modelo
     path_model = path_raiz + name_model
     #Cargamos modelo
-    model = joblib.load(path_model + '/model.pkl')
+    model = joblib.load(path_model + '/model' + str(num) +'.pkl')
     print(model)
     
     try:

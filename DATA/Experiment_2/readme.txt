@@ -9,3 +9,6 @@ T8: 10 event buena sincronizacion
 T9: 10 event buena sincronizacion
 T10: 10 event buena sincronizacion
 
+
+
+--- T14 imaginacion cerrar abrir puño derecho
